@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { X, MapPin, Star, Clock, Dumbbell, Home, Umbrella, Building2 } from 'lucide-react';
-import { sessionPackages, monthlyRates, gymMembershipFee, gyms, hotels, outdoorSpaces } from '../data/marketplaceData.js';
+import { sessionPackages, monthlyRates, gymMembershipFee } from '../data/marketplaceData.js';
 import { formatMVR, formatUSD } from '../utils/currency.js';
 
 const locationIcons = {
@@ -10,27 +10,31 @@ const locationIcons = {
   Hotel: <Building2 className="w-5 h-5" />,
 };
 
-function getAvailableFacilities(city, location) {
+const FACILITY_KIND_FOR_LOCATION = { Gym: 'gym', Hotel: 'hotel', Outdoor: 'outdoor' };
+
+function getAvailableFacilities(facilities, city, location) {
   if (!city || !location) return [];
-  if (location === 'Gym') return gyms.filter((g) => g.city === city);
-  if (location === 'Hotel') return hotels.filter((h) => h.city === city);
-  if (location === 'Outdoor') return outdoorSpaces.filter((s) => s.city === city);
-  if (location === 'Home') return [{ id: 'home', name: `Your Home in ${city}`, city }];
-  return [];
+  if (location === 'Home') return [{ id: 'home', name: `Your Home in ${city}`, detail: '' }];
+  const kind = FACILITY_KIND_FOR_LOCATION[location];
+  return facilities.filter((f) => f.kind === kind && f.city === city);
 }
 
 export default function BookingModal({
   trainer,
+  facilities,
   selectedCity,
   setSelectedCity,
   selectedLocation,
   setSelectedLocation,
   selectedFacility,
   setSelectedFacility,
-  selectedSlot,
-  setSelectedSlot,
+  selectedSlotId,
+  setSelectedSlotId,
   selectedPackage,
   setSelectedPackage,
+  contact,
+  setContact,
+  booking,
   onClose,
   onCheckout,
 }) {
@@ -54,7 +58,7 @@ export default function BookingModal({
     };
   }, [onClose]);
 
-  const availableFacilities = getAvailableFacilities(selectedCity, selectedLocation);
+  const availableFacilities = getAvailableFacilities(facilities, selectedCity, selectedLocation);
 
   return (
     <div
@@ -183,9 +187,7 @@ export default function BookingModal({
                       }`}
                     >
                       <p className="font-semibold">{facility.name}</p>
-                      <p className="text-sm text-slate-400 mt-1">
-                        {facility.address || facility.amenities || facility.type}
-                      </p>
+                      {facility.detail && <p className="text-sm text-slate-400 mt-1">{facility.detail}</p>}
                     </button>
                   ))}
                 </div>
@@ -258,20 +260,73 @@ export default function BookingModal({
               <Clock className="w-5 h-5 text-emerald-400" />
               Select Time Slot
             </h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {trainer.availability_calendar.map((slot) => (
-                <button
-                  key={slot}
-                  onClick={() => setSelectedSlot(slot)}
-                  className={`p-3 rounded-lg border-2 transition-all font-medium text-sm ${
-                    selectedSlot === slot
-                      ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300'
-                      : 'border-slate-700 bg-slate-800/50 text-slate-300 hover:border-slate-600'
-                  }`}
-                >
-                  {slot}
-                </button>
-              ))}
+            {trainer.slots.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {trainer.slots.map((slot) => (
+                  <button
+                    key={slot.id}
+                    onClick={() => setSelectedSlotId(slot.id)}
+                    className={`p-3 rounded-lg border-2 transition-all font-medium text-sm ${
+                      selectedSlotId === slot.id
+                        ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300'
+                        : 'border-slate-700 bg-slate-800/50 text-slate-300 hover:border-slate-600'
+                    }`}
+                  >
+                    {slot.label}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-slate-400 text-center py-4">No open time slots right now — check back soon.</p>
+            )}
+          </div>
+
+          {/* Contact Details */}
+          <div>
+            <h4 className="text-lg font-bold mb-4">Your Details</h4>
+            <div className="space-y-3">
+              <div>
+                <label htmlFor="contact-name" className="block text-sm font-medium text-slate-300 mb-1">
+                  Full name
+                </label>
+                <input
+                  id="contact-name"
+                  type="text"
+                  value={contact.name}
+                  onChange={(e) => setContact({ ...contact, name: e.target.value })}
+                  className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Jane Smith"
+                  autoComplete="name"
+                />
+              </div>
+              <div>
+                <label htmlFor="contact-email" className="block text-sm font-medium text-slate-300 mb-1">
+                  Email
+                </label>
+                <input
+                  id="contact-email"
+                  type="email"
+                  value={contact.email}
+                  onChange={(e) => setContact({ ...contact, email: e.target.value })}
+                  className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="jane@example.com"
+                  autoComplete="email"
+                />
+              </div>
+              <div>
+                <label htmlFor="contact-phone" className="block text-sm font-medium text-slate-300 mb-1">
+                  Phone <span className="text-slate-500">(optional)</span>
+                </label>
+                <input
+                  id="contact-phone"
+                  type="tel"
+                  value={contact.phone}
+                  onChange={(e) => setContact({ ...contact, phone: e.target.value })}
+                  className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 text-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="+960 555 5555"
+                  autoComplete="tel"
+                />
+              </div>
             </div>
           </div>
 
@@ -287,9 +342,10 @@ export default function BookingModal({
           {/* CTA */}
           <button
             onClick={onCheckout}
-            className="w-full bg-gradient-to-r from-emerald-500 to-lime-400 text-slate-900 font-bold py-4 rounded-lg hover:shadow-lg hover:shadow-emerald-500/40 transition-all text-lg"
+            disabled={booking}
+            className="w-full bg-gradient-to-r from-emerald-500 to-lime-400 text-slate-900 font-bold py-4 rounded-lg hover:shadow-lg hover:shadow-emerald-500/40 transition-all text-lg disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Proceed to Secure Checkout
+            {booking ? 'Confirming…' : 'Proceed to Secure Checkout'}
           </button>
 
           <p className="text-xs text-slate-400 text-center">
