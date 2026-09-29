@@ -1,4 +1,6 @@
-import { CITIES, LOCATIONS } from '../data/marketplaceData.js';
+import { CITIES, LOCATIONS, trainers } from '../data/marketplaceData.js';
+
+const HERO_BACKDROP = trainers[0].image_url;
 
 export default function SearchHero({ filters, setFilters, allSpecialties }) {
   const scrollToResults = () => {
@@ -6,33 +8,55 @@ export default function SearchHero({ filters, setFilters, allSpecialties }) {
   };
 
   return (
-    <section className="relative overflow-hidden py-12 sm:py-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10 sm:mb-12">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-4 tracking-tight">
+    <section className="relative overflow-hidden py-16 sm:py-28">
+      {/* Faded backdrop — atmosphere only, heavily darkened so it reads as mood, not a specific photo */}
+      <div className="absolute inset-0">
+        <img src={HERO_BACKDROP} alt="" className="w-full h-full object-cover object-top opacity-25 grayscale" />
+        <div className="absolute inset-0 bg-wash-hero opacity-95" />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-10 sm:mb-14">
+          <p className="font-mono text-xs sm:text-sm tracking-[0.25em] uppercase text-lagoon mb-4">
+            Personal Trainers &middot; Greater Mal&eacute;
+          </p>
+          <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl leading-[0.95] mb-6">
             Find Certified Trainers.
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-lime-300 mt-2">
-              Train Anywhere.
-            </span>
+            <span className="block text-lagoon mt-1">Train Anywhere.</span>
           </h1>
-          <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-ink-70 max-w-2xl mx-auto">
             Book elite coaches for your Home, Gym, Hotel, or Outdoors. Tailored rates. Zero friction.
           </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
+            <button
+              onClick={scrollToResults}
+              className="px-8 py-3.5 bg-lagoon text-ink-solid font-bold uppercase tracking-wide text-sm hover:bg-lagoon-deep transition"
+            >
+              Browse Trainers
+            </button>
+            <a
+              href="#"
+              className="px-8 py-3.5 border-2 border-line text-ink font-bold uppercase tracking-wide text-sm hover:border-lagoon hover:text-lagoon transition"
+            >
+              Register as PT
+            </a>
+          </div>
         </div>
 
         {/* INTERACTIVE SEARCH BAR */}
-        <div className="bg-slate-800/50 backdrop-blur-md border border-slate-700 rounded-2xl p-4 sm:p-6 max-w-5xl mx-auto shadow-2xl">
+        <div className="bg-card/90 backdrop-blur-md border border-line p-4 sm:p-6 max-w-5xl mx-auto shadow-2xl">
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {/* City Filter */}
             <div>
-              <label htmlFor="filter-city" className="block text-sm font-semibold text-slate-300 mb-3">
+              <label htmlFor="filter-city" className="block text-sm font-semibold text-ink-70 mb-3">
                 City Location
               </label>
               <select
                 id="filter-city"
                 value={filters.city}
                 onChange={(e) => setFilters({ ...filters, city: e.target.value })}
-                className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-3 text-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent cursor-pointer"
+                className="w-full bg-surface border border-line px-4 py-3 text-ink focus:outline-none focus:ring-2 focus:ring-lagoon focus:border-transparent cursor-pointer"
               >
                 <option value="">All Cities</option>
                 {CITIES.map((city) => (
@@ -45,14 +69,14 @@ export default function SearchHero({ filters, setFilters, allSpecialties }) {
 
             {/* Location Filter */}
             <div>
-              <label htmlFor="filter-location" className="block text-sm font-semibold text-slate-300 mb-3">
+              <label htmlFor="filter-location" className="block text-sm font-semibold text-ink-70 mb-3">
                 Training Location
               </label>
               <select
                 id="filter-location"
                 value={filters.location}
                 onChange={(e) => setFilters({ ...filters, location: e.target.value })}
-                className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-3 text-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent cursor-pointer"
+                className="w-full bg-surface border border-line px-4 py-3 text-ink focus:outline-none focus:ring-2 focus:ring-lagoon focus:border-transparent cursor-pointer"
               >
                 <option value="">All Locations</option>
                 {LOCATIONS.map((loc) => (
@@ -65,14 +89,14 @@ export default function SearchHero({ filters, setFilters, allSpecialties }) {
 
             {/* Specialty Filter */}
             <div>
-              <label htmlFor="filter-specialty" className="block text-sm font-semibold text-slate-300 mb-3">
+              <label htmlFor="filter-specialty" className="block text-sm font-semibold text-ink-70 mb-3">
                 Specialty
               </label>
               <select
                 id="filter-specialty"
                 value={filters.specialty}
                 onChange={(e) => setFilters({ ...filters, specialty: e.target.value })}
-                className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-3 text-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent cursor-pointer"
+                className="w-full bg-surface border border-line px-4 py-3 text-ink focus:outline-none focus:ring-2 focus:ring-lagoon focus:border-transparent cursor-pointer"
               >
                 <option value="">All Specialties</option>
                 {allSpecialties.map((spec) => (
@@ -87,7 +111,7 @@ export default function SearchHero({ filters, setFilters, allSpecialties }) {
             <div className="flex items-end">
               <button
                 onClick={scrollToResults}
-                className="w-full bg-gradient-to-r from-emerald-500 to-lime-400 text-slate-900 font-bold py-3 rounded-lg hover:shadow-lg hover:shadow-emerald-500/40 transition-all"
+                className="w-full bg-lagoon text-ink-solid font-bold uppercase tracking-wide text-sm py-3 hover:bg-lagoon-deep transition"
               >
                 Search Trainers
               </button>

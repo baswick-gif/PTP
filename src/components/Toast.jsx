@@ -7,8 +7,8 @@ export default function Toast({ toast }) {
     <div
       role="status"
       aria-live="polite"
-      className={`fixed top-[calc(env(safe-area-inset-top)+1rem)] left-4 right-4 sm:left-auto sm:right-4 z-[60] p-4 rounded-lg flex items-center gap-3 shadow-xl ${
-        toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+      className={`fixed top-[calc(env(safe-area-inset-top)+1rem)] left-4 right-4 sm:left-auto sm:right-4 z-[60] p-4 flex items-center gap-3 shadow-xl ${
+        toast.type === 'success' ? 'bg-lagoon text-ink-solid' : 'bg-alert text-ink-solid'
       }`}
     >
       {toast.type === 'success' ? (

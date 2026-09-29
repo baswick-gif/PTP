@@ -6,11 +6,14 @@ export const trainers = [
     certifications: ['REPs Level 3', 'NASM Nutrition Coach'],
     specialties: ['Weight Loss', 'Functional Strength', 'HIIT'],
     bio: 'Specializing in body transformations for busy professionals. I bring elite coaching directly to your preferred environment.',
+    verified: true,
     rating: 4.9,
     review_count: 42,
     available_cities: ['Male', 'Hulhumale'],
     available_locations: ['Gym', 'Home', 'Outdoor'],
-    availability_calendar: ['Mon 9AM', 'Mon 2PM', 'Wed 6PM', 'Fri 9AM', 'Fri 5PM'],
+    availability_calendar: ['Mon 9AM', 'Mon 5PM', 'Tue 7AM', 'Wed 6PM', 'Thu 9AM', 'Fri 9AM', 'Fri 5PM', 'Sat 10AM'],
+    // Each trainer sets their own monthly rate per training location (roughly MVR 1,500-3,000).
+    monthlyRates: { Gym: 1800, Home: 2400, Outdoor: 1600 },
   },
   {
     id: 'pt_02',
@@ -19,11 +22,13 @@ export const trainers = [
     certifications: ['ACE Personal Trainer', 'Pre/Post Natal Certified'],
     specialties: ['Mobility', 'Strength Training', 'Post-Pregnancy Fitness'],
     bio: 'Helping you build a sustainable lifestyle. Flexible schedules tailored for residential visits and private hotel gym training.',
+    verified: true,
     rating: 5.0,
     review_count: 28,
     available_cities: ['Male'],
     available_locations: ['Home', 'Hotel', 'Outdoor'],
-    availability_calendar: ['Tue 8AM', 'Tue 1PM', 'Thu 9AM', 'Sat 10AM', 'Sat 4PM'],
+    availability_calendar: ['Mon 8AM', 'Tue 8AM', 'Tue 1PM', 'Wed 9AM', 'Thu 9AM', 'Fri 4PM', 'Sat 10AM', 'Sat 4PM'],
+    monthlyRates: { Home: 2600, Hotel: 3000, Outdoor: 2000 },
   },
   {
     id: 'pt_03',
@@ -32,11 +37,13 @@ export const trainers = [
     certifications: ['ISSA Certified', 'Strength & Conditioning Specialist'],
     specialties: ['Muscle Gain', 'Athletic Performance', 'Sport-Specific Training'],
     bio: 'Olympic training methodology applied to everyday athletes. Get stronger, faster, better.',
+    verified: true,
     rating: 4.8,
     review_count: 35,
     available_cities: ['Hulhumale'],
     available_locations: ['Gym', 'Home'],
-    availability_calendar: ['Mon 7AM', 'Wed 6PM', 'Thu 7AM', 'Fri 6PM'],
+    availability_calendar: ['Mon 7AM', 'Tue 6PM', 'Wed 6PM', 'Thu 7AM', 'Fri 6PM', 'Sat 8AM'],
+    monthlyRates: { Gym: 2000, Home: 2700 },
   },
   {
     id: 'pt_04',
@@ -45,11 +52,13 @@ export const trainers = [
     certifications: ['NASM Certified', 'Yoga Instructor Certified'],
     specialties: ['Flexibility', 'Mind-Body Training', 'Wellness'],
     bio: 'Holistic fitness approach combining strength, flexibility, and mental wellness. Transform your lifestyle.',
+    verified: true,
     rating: 4.9,
     review_count: 31,
     available_cities: ['Male', 'Hulhumale'],
     available_locations: ['Home', 'Outdoor', 'Hotel'],
-    availability_calendar: ['Mon 10AM', 'Wed 7AM', 'Thu 5PM', 'Sat 11AM'],
+    availability_calendar: ['Mon 10AM', 'Tue 7AM', 'Wed 7AM', 'Thu 5PM', 'Fri 10AM', 'Sat 11AM'],
+    monthlyRates: { Home: 2200, Outdoor: 1700, Hotel: 2500 },
   },
 ];
 
@@ -88,21 +97,12 @@ export const sessionPackages = [
   },
 ];
 
-// Monthly rates in MVR (baseline for 1 month commitment)
-export const monthlyRates = {
-  Gym: 2500,
-  Home: 3000,
-  Outdoor: 2000,
-  Hotel: 3500,
-};
-
-export const gymMembershipFee = 1080; // MVR per month
-
+// Each gym sets its own monthly membership fee from its own rate card.
 export const gyms = [
-  { id: 'gym_01', name: 'Iron Haven Fitness', city: 'Male', address: 'Male City Center' },
-  { id: 'gym_02', name: 'FitZone Premium', city: 'Male', address: 'Male North District' },
-  { id: 'gym_03', name: 'PowerPlay Gym', city: 'Hulhumale', address: 'Hulhumale Central' },
-  { id: 'gym_04', name: 'Elite Fitness Hub', city: 'Hulhumale', address: 'Hulhumale South' },
+  { id: 'gym_01', name: 'Iron Haven Fitness', city: 'Male', address: 'Male City Center', monthlyFee: 1080 },
+  { id: 'gym_02', name: 'FitZone Premium', city: 'Male', address: 'Male North District', monthlyFee: 1080 },
+  { id: 'gym_03', name: 'PowerPlay Gym', city: 'Hulhumale', address: 'Hulhumale Central', monthlyFee: 1080 },
+  { id: 'gym_04', name: 'Elite Fitness Hub', city: 'Hulhumale', address: 'Hulhumale South', monthlyFee: 1080 },
 ];
 
 export const hotels = [
