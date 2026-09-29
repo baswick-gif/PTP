@@ -41,16 +41,6 @@ export const sessionPackages = [
   },
 ];
 
-// Monthly rates in MVR (baseline for 1 month commitment)
-export const monthlyRates = {
-  Gym: 2500,
-  Home: 3000,
-  Outdoor: 2000,
-  Hotel: 3500,
-};
-
-export const gymMembershipFee = 1080; // MVR per month
-
 export const MVR_PER_USD = 15.42;
 
 export const CITIES = ['Male', 'Hulhumale'];

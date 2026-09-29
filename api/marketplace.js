@@ -33,6 +33,8 @@ async function marketplace(req, res) {
     available_locations: t.available_locations,
     rating: Number(t.rating),
     review_count: t.review_count,
+    verified: t.verified,
+    monthlyRates: t.monthly_rates,
     slots: slotsByTrainer.get(t.id) || [],
   }));
 
@@ -42,6 +44,7 @@ async function marketplace(req, res) {
     name: f.name,
     city: f.city,
     detail: f.detail,
+    monthlyFee: Number(f.monthly_fee),
   }));
 
   res.status(200).setHeader('content-type', 'application/json').send(JSON.stringify({ trainers, facilities }));

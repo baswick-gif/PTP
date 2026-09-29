@@ -24,9 +24,11 @@ const trainers = [
     bio: 'Specializing in body transformations for busy professionals. I bring elite coaching directly to your preferred environment.',
     rating: 4.9,
     review_count: 42,
+    verified: true,
     available_cities: ['Male', 'Hulhumale'],
     available_locations: ['Gym', 'Home', 'Outdoor'],
-    slots: ['Mon 9AM', 'Mon 2PM', 'Wed 6PM', 'Fri 9AM', 'Fri 5PM'],
+    monthly_rates: { Gym: 1800, Home: 2400, Outdoor: 1600 },
+    slots: ['Mon 9AM', 'Mon 5PM', 'Tue 7AM', 'Wed 6PM', 'Thu 9AM', 'Fri 9AM', 'Fri 5PM', 'Sat 10AM'],
   },
   {
     id: 'pt_02',
@@ -37,9 +39,11 @@ const trainers = [
     bio: 'Helping you build a sustainable lifestyle. Flexible schedules tailored for residential visits and private hotel gym training.',
     rating: 5.0,
     review_count: 28,
+    verified: true,
     available_cities: ['Male'],
     available_locations: ['Home', 'Hotel', 'Outdoor'],
-    slots: ['Tue 8AM', 'Tue 1PM', 'Thu 9AM', 'Sat 10AM', 'Sat 4PM'],
+    monthly_rates: { Home: 2600, Hotel: 3000, Outdoor: 2000 },
+    slots: ['Mon 8AM', 'Tue 8AM', 'Tue 1PM', 'Wed 9AM', 'Thu 9AM', 'Fri 4PM', 'Sat 10AM', 'Sat 4PM'],
   },
   {
     id: 'pt_03',
@@ -50,9 +54,11 @@ const trainers = [
     bio: 'Olympic training methodology applied to everyday athletes. Get stronger, faster, better.',
     rating: 4.8,
     review_count: 35,
+    verified: true,
     available_cities: ['Hulhumale'],
     available_locations: ['Gym', 'Home'],
-    slots: ['Mon 7AM', 'Wed 6PM', 'Thu 7AM', 'Fri 6PM'],
+    monthly_rates: { Gym: 2000, Home: 2700 },
+    slots: ['Mon 7AM', 'Tue 6PM', 'Wed 6PM', 'Thu 7AM', 'Fri 6PM', 'Sat 8AM'],
   },
   {
     id: 'pt_04',
@@ -63,17 +69,20 @@ const trainers = [
     bio: 'Holistic fitness approach combining strength, flexibility, and mental wellness. Transform your lifestyle.',
     rating: 4.9,
     review_count: 31,
+    verified: true,
     available_cities: ['Male', 'Hulhumale'],
     available_locations: ['Home', 'Outdoor', 'Hotel'],
-    slots: ['Mon 10AM', 'Wed 7AM', 'Thu 5PM', 'Sat 11AM'],
+    monthly_rates: { Home: 2200, Outdoor: 1700, Hotel: 2500 },
+    slots: ['Mon 10AM', 'Tue 7AM', 'Wed 7AM', 'Thu 5PM', 'Fri 10AM', 'Sat 11AM'],
   },
 ];
 
+// Each gym sets its own monthly membership fee from its own rate card.
 const facilities = [
-  { id: 'gym_01', kind: 'gym', name: 'Iron Haven Fitness', city: 'Male', detail: 'Male City Center' },
-  { id: 'gym_02', kind: 'gym', name: 'FitZone Premium', city: 'Male', detail: 'Male North District' },
-  { id: 'gym_03', kind: 'gym', name: 'PowerPlay Gym', city: 'Hulhumale', detail: 'Hulhumale Central' },
-  { id: 'gym_04', kind: 'gym', name: 'Elite Fitness Hub', city: 'Hulhumale', detail: 'Hulhumale South' },
+  { id: 'gym_01', kind: 'gym', name: 'Iron Haven Fitness', city: 'Male', detail: 'Male City Center', monthly_fee: 1080 },
+  { id: 'gym_02', kind: 'gym', name: 'FitZone Premium', city: 'Male', detail: 'Male North District', monthly_fee: 1080 },
+  { id: 'gym_03', kind: 'gym', name: 'PowerPlay Gym', city: 'Hulhumale', detail: 'Hulhumale Central', monthly_fee: 1080 },
+  { id: 'gym_04', kind: 'gym', name: 'Elite Fitness Hub', city: 'Hulhumale', detail: 'Hulhumale South', monthly_fee: 1080 },
   { id: 'hotel_01', kind: 'hotel', name: 'The Maldivian Resort', city: 'Male', detail: 'Full Gym, Olympic Pool, Spa' },
   { id: 'hotel_02', kind: 'hotel', name: 'Coral Palace Hotel', city: 'Male', detail: 'Fitness Center, Facilities' },
   { id: 'hotel_03', kind: 'hotel', name: 'Ocean View Hotel', city: 'Hulhumale', detail: 'Modern Gym, Beach Access' },
@@ -92,11 +101,12 @@ async function seed() {
 
   for (const t of trainers) {
     await query(
-      `insert into trainers (id, name, image_url, bio, certifications, specialties, available_cities, available_locations, rating, review_count, created_at)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+      `insert into trainers (id, name, image_url, bio, certifications, specialties, available_cities, available_locations, rating, review_count, verified, monthly_rates, created_at)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
        on conflict (id) do nothing`,
       [t.id, t.name, t.image_url, t.bio, JSON.stringify(t.certifications), JSON.stringify(t.specialties),
-       JSON.stringify(t.available_cities), JSON.stringify(t.available_locations), t.rating, t.review_count, now]
+       JSON.stringify(t.available_cities), JSON.stringify(t.available_locations), t.rating, t.review_count,
+       t.verified, JSON.stringify(t.monthly_rates), now]
     );
     for (const label of t.slots) {
       // Deterministic id (not newId()) so re-running this script never
@@ -114,10 +124,10 @@ async function seed() {
 
   for (const f of facilities) {
     await query(
-      `insert into facilities (id, kind, name, city, detail, created_at)
-       values ($1,$2,$3,$4,$5,$6)
+      `insert into facilities (id, kind, name, city, detail, monthly_fee, created_at)
+       values ($1,$2,$3,$4,$5,$6,$7)
        on conflict (id) do nothing`,
-      [f.id, f.kind, f.name, f.city, f.detail, now]
+      [f.id, f.kind, f.name, f.city, f.detail, f.monthly_fee || 0, now]
     );
   }
 

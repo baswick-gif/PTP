@@ -18,6 +18,10 @@ create table if not exists trainers (
   available_locations jsonb not null default '[]',
   rating numeric not null default 0,
   review_count integer not null default 0,
+  verified boolean not null default false,
+  -- Each trainer sets their own monthly rate per training location, e.g.
+  -- {"Gym": 1800, "Home": 2400} — never a single global rate.
+  monthly_rates jsonb not null default '{}',
   created_at text not null
 );
 
@@ -44,6 +48,10 @@ create table if not exists facilities (
   name text not null,
   city text not null,
   detail text, -- address (gym), amenities (hotel), or space type (outdoor)
+  -- Only meaningful for kind='gym' — each gym sets its own monthly
+  -- membership fee from its own rate card. Never charged for
+  -- Home/Hotel/Outdoor bookings.
+  monthly_fee numeric not null default 0,
   created_at text not null
 );
 create index if not exists idx_facilities_kind_city on facilities(kind, city);
@@ -71,3 +79,13 @@ create table if not exists bookings (
 );
 create index if not exists idx_bookings_trainer on bookings(trainer_id);
 create index if not exists idx_bookings_email on bookings(customer_email);
+
+-- One row per slot claimed by a booking. A one-day session claims exactly
+-- one; a recurring package (weekly/monthly/yearly) claims 2-6 — one per
+-- selected weekly time slot. bookings.slot_id above stays the first slot
+-- (for simple display); this table is the authoritative full list.
+create table if not exists booking_slots (
+  booking_id text not null references bookings(id),
+  slot_id text not null references trainer_slots(id),
+  primary key (booking_id, slot_id)
+);

@@ -4,6 +4,7 @@ import SearchHero from './SearchHero.jsx';
 import TrainerGrid from './TrainerGrid.jsx';
 import PromoBanner from './PromoBanner.jsx';
 import BookingModal from './BookingModal.jsx';
+import TrainerProfileModal from './TrainerProfileModal.jsx';
 import Footer from './Footer.jsx';
 import Toast from './Toast.jsx';
 import { fetchMarketplace, createBooking } from '../api.js';
@@ -12,6 +13,7 @@ const PTPoolMarketplace = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedTrainer, setSelectedTrainer] = useState(null);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [profileTrainer, setProfileTrainer] = useState(null);
   const [toast, setToast] = useState(null);
 
   const [filters, setFilters] = useState({ city: '', location: '', specialty: '' });
@@ -23,7 +25,7 @@ const PTPoolMarketplace = () => {
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [selectedFacility, setSelectedFacility] = useState('');
-  const [selectedSlotId, setSelectedSlotId] = useState('');
+  const [selectedSlots, setSelectedSlots] = useState([]);
   const [selectedPackage, setSelectedPackage] = useState('');
   const [contact, setContact] = useState({ name: '', email: '', phone: '' });
   const [booking, setBooking] = useState(false);
@@ -55,11 +57,12 @@ const PTPoolMarketplace = () => {
   }, [trainers, filters]);
 
   const handleOpenBooking = useCallback((trainer) => {
+    setProfileTrainer(null);
     setSelectedTrainer(trainer);
     setSelectedCity('');
     setSelectedLocation('');
     setSelectedFacility('');
-    setSelectedSlotId('');
+    setSelectedSlots([]);
     setSelectedPackage('');
     setContact({ name: '', email: '', phone: '' });
     setBookingModalOpen(true);
@@ -70,9 +73,23 @@ const PTPoolMarketplace = () => {
     setBookingModalOpen(false);
   }, [booking]);
 
+  const handleViewProfile = useCallback((trainer) => {
+    setProfileTrainer(trainer);
+  }, []);
+
+  const handleCloseProfile = useCallback(() => {
+    setProfileTrainer(null);
+  }, []);
+
   const handleCheckout = useCallback(async () => {
-    if (!selectedCity || !selectedLocation || !selectedFacility || !selectedSlotId || !selectedPackage) {
-      setToast({ type: 'error', message: 'Please complete all selections before proceeding.' });
+    const isRecurringPackage = selectedPackage && selectedPackage !== 'one_day';
+    const minSlotsRequired = isRecurringPackage ? 2 : 1;
+
+    if (!selectedCity || !selectedLocation || !selectedFacility || !selectedPackage || selectedSlots.length < minSlotsRequired) {
+      const message = isRecurringPackage && selectedSlots.length < minSlotsRequired
+        ? 'Please select at least 2 weekly time slots.'
+        : 'Please complete all selections before proceeding.';
+      setToast({ type: 'error', message });
       setTimeout(() => setToast(null), 3000);
       return;
     }
@@ -86,7 +103,7 @@ const PTPoolMarketplace = () => {
     try {
       const confirmed = await createBooking({
         trainerId: selectedTrainer.id,
-        slotId: selectedSlotId,
+        slotIds: selectedSlots,
         customerName: contact.name.trim(),
         customerEmail: contact.email.trim(),
         customerPhone: contact.phone.trim(),
@@ -95,19 +112,22 @@ const PTPoolMarketplace = () => {
         facilityId: selectedFacility === 'home' ? '' : selectedFacility,
         packageId: selectedPackage,
       });
-      setToast({ type: 'success', message: `Booking confirmed with ${confirmed.trainerName} — ${confirmed.slotLabel}!` });
+      setToast({
+        type: 'success',
+        message: `Booking confirmed with ${confirmed.trainerName} — ${confirmed.slotLabels.join(', ')}!`,
+      });
       setBookingModalOpen(false);
-      loadMarketplace(); // refresh so the slot just booked disappears everywhere
+      loadMarketplace(); // refresh so the slot(s) just booked disappear everywhere
     } catch (err) {
       setToast({ type: 'error', message: err.message });
     } finally {
       setBooking(false);
       setTimeout(() => setToast(null), 4000);
     }
-  }, [selectedCity, selectedLocation, selectedFacility, selectedSlotId, selectedPackage, selectedTrainer, contact, loadMarketplace]);
+  }, [selectedCity, selectedLocation, selectedFacility, selectedSlots, selectedPackage, selectedTrainer, contact, loadMarketplace]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 text-slate-50">
+    <div className="min-h-screen bg-wash-body text-ink font-sans">
       <Toast toast={toast} />
 
       <Navbar mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
@@ -117,23 +137,32 @@ const PTPoolMarketplace = () => {
       {loadState === 'error' ? (
         <div className="max-w-2xl mx-auto px-4 py-16 text-center">
           <h3 className="text-xl font-semibold mb-2">Couldn't load trainers</h3>
-          <p className="text-slate-400 mb-6">Something went wrong reaching the server. Please try again.</p>
+          <p className="text-ink-70 mb-6">Something went wrong reaching the server. Please try again.</p>
           <button
             onClick={loadMarketplace}
-            className="bg-gradient-to-r from-emerald-500 to-lime-400 text-slate-900 font-bold py-3 px-6 rounded-lg"
+            className="bg-lagoon text-ink-solid font-bold uppercase tracking-wide text-sm py-3 px-6 hover:bg-lagoon-deep transition"
           >
             Retry
           </button>
         </div>
       ) : loadState === 'loading' ? (
-        <div className="max-w-7xl mx-auto px-4 py-16 text-center text-slate-400" role="status">
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center text-ink-70" role="status">
           Loading trainers…
         </div>
       ) : (
-        <TrainerGrid trainers={filteredTrainers} filters={filters} onBook={handleOpenBooking} />
+        <TrainerGrid
+          trainers={filteredTrainers}
+          filters={filters}
+          onBook={handleOpenBooking}
+          onViewProfile={handleViewProfile}
+        />
       )}
 
       <PromoBanner />
+
+      {profileTrainer && (
+        <TrainerProfileModal trainer={profileTrainer} onClose={handleCloseProfile} onBook={handleOpenBooking} />
+      )}
 
       {bookingModalOpen && selectedTrainer && (
         <BookingModal
@@ -145,8 +174,8 @@ const PTPoolMarketplace = () => {
           setSelectedLocation={setSelectedLocation}
           selectedFacility={selectedFacility}
           setSelectedFacility={setSelectedFacility}
-          selectedSlotId={selectedSlotId}
-          setSelectedSlotId={setSelectedSlotId}
+          selectedSlots={selectedSlots}
+          setSelectedSlots={setSelectedSlots}
           selectedPackage={selectedPackage}
           setSelectedPackage={setSelectedPackage}
           contact={contact}
