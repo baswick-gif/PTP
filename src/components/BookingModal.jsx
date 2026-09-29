@@ -1,25 +1,28 @@
 import { useEffect, useRef } from 'react';
 import { X, MapPin, Clock } from 'lucide-react';
-import { sessionPackages, gyms, hotels, outdoorSpaces } from '../data/marketplaceData.js';
+import { sessionPackages } from '../data/marketplaceData.js';
 import { formatMVR, formatUSD } from '../utils/currency.js';
 import { locationIcons } from './locationIcons.jsx';
 import StarRating from './StarRating.jsx';
 
-function getAvailableFacilities(city, location) {
+const FACILITY_KIND_FOR_LOCATION = { Gym: 'gym', Hotel: 'hotel', Outdoor: 'outdoor' };
+
+function getAvailableFacilities(facilities, city, location) {
   if (!city || !location) return [];
-  if (location === 'Gym') return gyms.filter((g) => g.city === city);
-  if (location === 'Hotel') return hotels.filter((h) => h.city === city);
-  if (location === 'Outdoor') return outdoorSpaces.filter((s) => s.city === city);
-  if (location === 'Home') return [{ id: 'home', name: `Your Home in ${city}`, city }];
-  return [];
+  if (location === 'Home') return [{ id: 'home', name: `Your Home in ${city}`, detail: '' }];
+  const kind = FACILITY_KIND_FOR_LOCATION[location];
+  return facilities.filter((f) => f.kind === kind && f.city === city);
 }
 
 const OPTION_BASE = 'p-4 border-2 transition-all';
 const OPTION_SELECTED = 'border-lagoon bg-lagoon-wash';
 const OPTION_UNSELECTED = 'border-line bg-surface/50 hover:border-lagoon-edge';
+const INPUT_CLASS =
+  'w-full bg-surface border border-line px-4 py-3 text-ink focus:outline-none focus:ring-2 focus:ring-lagoon focus:border-transparent';
 
 export default function BookingModal({
   trainer,
+  facilities,
   selectedCity,
   setSelectedCity,
   selectedLocation,
@@ -30,6 +33,9 @@ export default function BookingModal({
   setSelectedSlots,
   selectedPackage,
   setSelectedPackage,
+  contact,
+  setContact,
+  booking,
   onClose,
   onCheckout,
 }) {
@@ -37,15 +43,15 @@ export default function BookingModal({
   const isRecurringPackage = selectedPackage && selectedPackage !== 'one_day';
   const maxSlots = 6;
 
-  const toggleSlot = (slot) => {
+  const toggleSlot = (slotId) => {
     if (!isRecurringPackage) {
-      setSelectedSlots([slot]);
+      setSelectedSlots([slotId]);
       return;
     }
     setSelectedSlots((prev) => {
-      if (prev.includes(slot)) return prev.filter((s) => s !== slot);
+      if (prev.includes(slotId)) return prev.filter((s) => s !== slotId);
       if (prev.length >= maxSlots) return prev;
-      return [...prev, slot];
+      return [...prev, slotId];
     });
   };
 
@@ -67,10 +73,10 @@ export default function BookingModal({
     };
   }, [onClose]);
 
-  const availableFacilities = getAvailableFacilities(selectedCity, selectedLocation);
+  const availableFacilities = getAvailableFacilities(facilities, selectedCity, selectedLocation);
   // The membership fee belongs to the gym, not the trainer — pulled from that gym's own rate card,
   // and only ever relevant when training happens at a gym (never Home, Hotel, or Outdoor).
-  const selectedGym = selectedLocation === 'Gym' ? gyms.find((g) => g.id === selectedFacility) : null;
+  const selectedGym = selectedLocation === 'Gym' ? facilities.find((f) => f.id === selectedFacility) : null;
   const gymFee = selectedGym?.monthlyFee ?? 0;
 
   return (
@@ -180,9 +186,7 @@ export default function BookingModal({
                       }`}
                     >
                       <p className="font-semibold">{facility.name}</p>
-                      <p className="text-sm text-ink-70 mt-1">
-                        {facility.address || facility.amenities || facility.type}
-                      </p>
+                      {facility.detail && <p className="text-sm text-ink-70 mt-1">{facility.detail}</p>}
                     </button>
                   ))}
                 </div>
@@ -261,27 +265,80 @@ export default function BookingModal({
                 ? `Choose 2–6 recurring times per week for this package. ${selectedSlots.length} of ${maxSlots} selected.`
                 : 'Choose the date and time for your session.'}
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {trainer.availability_calendar.map((slot) => {
-                const isSelected = selectedSlots.includes(slot);
-                const isDisabled = isRecurringPackage && !isSelected && selectedSlots.length >= maxSlots;
-                return (
-                  <button
-                    key={slot}
-                    onClick={() => toggleSlot(slot)}
-                    disabled={isDisabled}
-                    className={`p-3 border-2 transition-all font-medium text-sm ${
-                      isSelected
-                        ? 'border-lagoon bg-lagoon-wash text-lagoon-deep'
-                        : isDisabled
-                        ? 'border-line bg-surface/30 text-ink-45 cursor-not-allowed'
-                        : `${OPTION_UNSELECTED} text-ink-70`
-                    }`}
-                  >
-                    {slot}
-                  </button>
-                );
-              })}
+            {trainer.slots.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {trainer.slots.map((slot) => {
+                  const isSelected = selectedSlots.includes(slot.id);
+                  const isDisabled = isRecurringPackage && !isSelected && selectedSlots.length >= maxSlots;
+                  return (
+                    <button
+                      key={slot.id}
+                      onClick={() => toggleSlot(slot.id)}
+                      disabled={isDisabled}
+                      className={`p-3 border-2 transition-all font-medium text-sm ${
+                        isSelected
+                          ? 'border-lagoon bg-lagoon-wash text-lagoon-deep'
+                          : isDisabled
+                          ? 'border-line bg-surface/30 text-ink-45 cursor-not-allowed'
+                          : `${OPTION_UNSELECTED} text-ink-70`
+                      }`}
+                    >
+                      {slot.label}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-ink-70 text-center py-4">No open time slots right now — check back soon.</p>
+            )}
+          </div>
+
+          {/* Contact Details */}
+          <div>
+            <h4 className="text-lg font-bold mb-4">Your Details</h4>
+            <div className="space-y-3">
+              <div>
+                <label htmlFor="contact-name" className="block text-sm font-medium text-ink-70 mb-1">
+                  Full name
+                </label>
+                <input
+                  id="contact-name"
+                  type="text"
+                  value={contact.name}
+                  onChange={(e) => setContact({ ...contact, name: e.target.value })}
+                  className={INPUT_CLASS}
+                  placeholder="Jane Smith"
+                  autoComplete="name"
+                />
+              </div>
+              <div>
+                <label htmlFor="contact-email" className="block text-sm font-medium text-ink-70 mb-1">
+                  Email
+                </label>
+                <input
+                  id="contact-email"
+                  type="email"
+                  value={contact.email}
+                  onChange={(e) => setContact({ ...contact, email: e.target.value })}
+                  className={INPUT_CLASS}
+                  placeholder="jane@example.com"
+                  autoComplete="email"
+                />
+              </div>
+              <div>
+                <label htmlFor="contact-phone" className="block text-sm font-medium text-ink-70 mb-1">
+                  Phone <span className="text-ink-45">(optional)</span>
+                </label>
+                <input
+                  id="contact-phone"
+                  type="tel"
+                  value={contact.phone}
+                  onChange={(e) => setContact({ ...contact, phone: e.target.value })}
+                  className={INPUT_CLASS}
+                  placeholder="+960 555 5555"
+                  autoComplete="tel"
+                />
+              </div>
             </div>
           </div>
 
@@ -299,9 +356,10 @@ export default function BookingModal({
           {/* CTA */}
           <button
             onClick={onCheckout}
-            className="w-full bg-lagoon text-ink-solid font-bold uppercase tracking-wide py-4 hover:bg-lagoon-deep transition text-base"
+            disabled={booking}
+            className="w-full bg-lagoon text-ink-solid font-bold uppercase tracking-wide py-4 hover:bg-lagoon-deep transition text-base disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Proceed to Secure Checkout
+            {booking ? 'Confirming…' : 'Proceed to Secure Checkout'}
           </button>
 
           <p className="text-xs text-ink-70 text-center">

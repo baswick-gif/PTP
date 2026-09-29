@@ -1,6 +1,8 @@
-import { CITIES, LOCATIONS, trainers } from '../data/marketplaceData.js';
+import { CITIES, LOCATIONS } from '../data/marketplaceData.js';
 
-const HERO_BACKDROP = trainers[0].image_url;
+// Purely decorative mood backdrop — not tied to any specific trainer's
+// data, so it renders immediately regardless of API load state.
+const HERO_BACKDROP = 'https://images.unsplash.com/photo-1633180543038-4e0d06c9a9d2?w=1200&h=800&fit=crop&crop=faces';
 
 export default function SearchHero({ filters, setFilters, allSpecialties }) {
   const scrollToResults = () => {

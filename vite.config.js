@@ -5,6 +5,15 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    // Forwards /api/* to api-server.js (run separately: `npm run dev:api`)
+    // so `npm run dev` keeps Vite's HMR while still talking to the real
+    // Postgres-backed API. Vercel needs no equivalent config in
+    // production — it routes /api/*.js itself.
+    proxy: {
+      '/api': 'http://localhost:3001',
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),

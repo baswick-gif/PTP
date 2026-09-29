@@ -5,12 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "node api-server.js",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "db:seed": "node db/seed.js"
   },
   "dependencies": {
     "lucide-react": "^1.23.0",
+    "pg": "^8.13.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },
